@@ -2,12 +2,14 @@
 
 import { useState } from 'react'
 import { supabase } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function SignupPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const router = useRouter();
 
   async function handleSignup() {
     setLoading(true)
@@ -25,7 +27,8 @@ export default function SignupPage() {
       return
     }
 
-    alert('Signup successful')
+    alert('Signup successful');
+    router.push("/auth/login");
 
     setLoading(false)
   }

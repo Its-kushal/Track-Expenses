@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+
 import { useRouter } from "next/navigation";
+
 import { supabase } from "@/lib/supabase/client";
+
+import { getProfile } from "@/features/profile/getProfile";
 
 export default function DashboardLayout({
     children,
@@ -14,7 +18,7 @@ export default function DashboardLayout({
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        async function checkSession() {
+        async function checkAccess() {
             const {
                 data: { session },
             } = await supabase.auth.getSession();
@@ -24,10 +28,28 @@ export default function DashboardLayout({
                 return;
             }
 
+            const profile = await getProfile();
+
+            if (!profile) {
+                router.push("/onboarding");
+                return;
+            }
+
+            const isProfileIncomplete =
+                !profile.full_name ||
+                !profile.username ||
+                !profile.currency ||
+                !profile.timezone;
+
+            if (isProfileIncomplete) {
+                router.push("/onboarding");
+                return;
+            }
+
             setLoading(false);
         }
 
-        checkSession();
+        checkAccess();
     }, [router]);
 
     if (loading) {
