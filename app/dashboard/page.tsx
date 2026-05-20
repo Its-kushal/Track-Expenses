@@ -1,35 +1,54 @@
 "use client";
-
 import { useEffect, useState } from "react";
-
 import Navbar from "@/components/layout/Navbar";
+import FloatingExpenseButton from "@/components/ui/FloatingExpenseButton";
+import ExpenseCard from "@/components/ui/ExpenseCard";
+import { fetchExpense } from "@/features/expenses/fetchExpense";
 
-import { getCurrentUser } from "@/features/auth/getCurrentUser";
+type Expense = {
+    id: string;
+    title: string;
+    amount: number;
+    expense_date: string;
+    description?: string;
+    notes?: string;
+    categories?: {
+        name: string;
+        type: string;
+    };
+    payment_modes?: {
+        name: string;
+    };
+};
 
 export default function DashboardPage() {
-    const [email, setEmail] = useState("");
-
+    const [expenses, setExpenses] = useState<Expense[]>([]);
     useEffect(() => {
-        async function loadUser() {
-            const user = await getCurrentUser();
-
-            if (!user) return;
-
-            setEmail(user.email || "");
+        async function loadExpenses() {
+            try {
+                const data = await fetchExpense(7);
+                setExpenses(data);
+            } catch (error) {
+                console.error(error);
+            }
         }
-
-        loadUser();
+        loadExpenses();
     }, []);
-
     return (
         <main>
             <Navbar />
-
             <div style={{ padding: 24 }}>
                 <h1>Dashboard</h1>
-
-                <p>Logged in as: {email}</p>
+                <h2>Recent Expenses</h2>
+                <br/>
+                {expenses.length === 0 ? (
+                    <p>No recent expenses</p>
+                ) : (
+                    expenses.map((expense) => (
+                        <ExpenseCard key={expense.id} expense={expense} />
+                    )))}
             </div>
+            <FloatingExpenseButton />
         </main>
     );
 }
