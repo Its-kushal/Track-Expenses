@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 
-export async function fetchExpense(limit?: number) {
+export async function fetchExpenses(limit?: number) {
     const {
         data: { user },
         error: authError,

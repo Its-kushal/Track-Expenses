@@ -1,8 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Crisp, airy light theme */
+  --color-background: #f8fafc; /* Slate 50 - slightly cool off-white */
+  --color-surface: #ffffff;    /* Pure white for cards */
+  --color-border: #e2e8f0;     /* Slate 200 - soft borders */
+  --color-primary: #0f172a;    /* Slate 900 - near black for main text */
+  --color-muted: #64748b;      /* Slate 500 - for secondary text */
+}
 
 body {
-  margin: 0;
-  padding: 0;
+  @apply bg-[var(--color-background)] text-[var(--color-primary)] antialiased min-h-[100dvh];
+}
+
+/* Ensure inputs pop against the clean background */
+input, select, textarea {
+  @apply bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-[var(--color-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all w-full placeholder-slate-400 shadow-sm;
+}
+
+button {
+  @apply active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100 cursor-pointer;
+}
+
+/* Helper for iOS safe area on mobile bottom nav */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
 }

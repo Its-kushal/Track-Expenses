@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchExpense } from "@/features/expenses/fetchExpense";
+import { fetchExpenses } from "@/features/expenses/fetchExpenses";
 import FloatingExpenseButton from "@/components/ui/FloatingExpenseButton";
 import ExpenseCard from "@/components/ui/ExpenseCard";
+import Navbar from "@/components/layout/Navbar";
 
 type Expense = {
     id: string;
@@ -22,11 +23,10 @@ type Expense = {
 export default function ExpensesPage() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
-
     useEffect(() => {
         async function loadExpenses() {
             try {
-                const data = await fetchExpense();
+                const data = await fetchExpenses();
                 setExpenses(data);
             } catch (error) {
                 console.error(error);
@@ -41,6 +41,7 @@ export default function ExpensesPage() {
     }
     return (
         <main style={{ padding: 24 }}>
+            <Navbar />
             <div
                 style={{
                     display: "flex",
@@ -54,10 +55,12 @@ export default function ExpensesPage() {
                 <div>No expenses found.</div>
             ) : (
                 <div>
-                    {expenses.map((expense) => (<ExpenseCard key={expense.id} expense={expense}/>))}
+                    {expenses.map((expense) => (
+                        <ExpenseCard key={expense.id} expense={expense} />
+                    ))}
                 </div>
             )}
-        <FloatingExpenseButton />
+            <FloatingExpenseButton />
         </main>
     );
 }
