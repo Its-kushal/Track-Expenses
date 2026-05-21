@@ -1,28 +1,28 @@
 @import "tailwindcss";
 
 @theme {
-  /* Crisp, airy light theme */
-  --color-background: #f8fafc; /* Slate 50 - slightly cool off-white */
-  --color-surface: #ffffff;    /* Pure white for cards */
-  --color-border: #e2e8f0;     /* Slate 200 - soft borders */
-  --color-primary: #0f172a;    /* Slate 900 - near black for main text */
-  --color-muted: #64748b;      /* Slate 500 - for secondary text */
+  /* Deep dark theme */
+  --color-background: #09090b; /* Zinc 950 - near black */
+  --color-surface: #18181b;    /* Zinc 900 - elevated cards */
+  --color-border: #27272a;     /* Zinc 800 - subtle borders */
+  --color-primary: #fafafa;    /* Zinc 50 - crisp white text */
+  --color-muted: #a1a1aa;      /* Zinc 400 - secondary text */
 }
 
 body {
   @apply bg-[var(--color-background)] text-[var(--color-primary)] antialiased min-h-[100dvh];
 }
 
-/* Ensure inputs pop against the clean background */
+/* Ensure inputs pop against the dark background */
 input, select, textarea {
-  @apply bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl px-4 py-3 text-[var(--color-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all w-full placeholder-slate-400 shadow-sm;
+  @apply bg-[#09090b] border border-[var(--color-border)] rounded-xl px-4 py-3 text-[var(--color-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-white/20 transition-all w-full placeholder-zinc-500 shadow-sm;
+  color-scheme: dark; /* Forces native date pickers to dark mode */
 }
 
 button {
   @apply active:scale-95 transition-transform disabled:opacity-50 disabled:active:scale-100 cursor-pointer;
 }
 
-/* Helper for iOS safe area on mobile bottom nav */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }

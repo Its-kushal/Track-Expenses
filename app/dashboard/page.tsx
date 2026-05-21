@@ -1,8 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
-import FloatingExpenseButton from "@/components/ui/FloatingExpenseButton";
 import ExpenseCard from "@/components/ui/ExpenseCard";
+import ExpenseForm from "@/components/forms/ExpenseForm";
 import { fetchExpenses } from "@/features/expenses/fetchExpenses";
 
 type Expense = {
@@ -12,18 +12,15 @@ type Expense = {
     expense_date: string;
     description?: string;
     notes?: string;
-    categories?: {
-        name: string;
-        type: string;
-    };
-    payment_modes?: {
-        name: string;
-    };
+    categories?: { name: string; type: string };
+    payment_modes?: { name: string };
 };
 
 export default function DashboardPage() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isFormOpen, setIsFormOpen] = useState(false); // 2. Add Modal State
+
     useEffect(() => {
         async function loadExpenses() {
             try {
@@ -37,9 +34,10 @@ export default function DashboardPage() {
         }
         loadExpenses();
     }, []);
+
     return (
-        <main className="min-h-screen bg-[var(--color-background)]">
-            <Navbar />
+        <main className="min-h-screen bg-[var(--color-background)] pb-24 md:pb-0">
+            <Navbar onAddClick={() => setIsFormOpen(true)} />
             <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
                 <header className="flex justify-between items-end">
                     <div>
@@ -52,7 +50,7 @@ export default function DashboardPage() {
                     </div>
                     <button
                         className="hidden md:block bg-white text-black px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
-                        onClick={() => (window.location.href = "/expenses/new")}
+                        onClick={() => setIsFormOpen(true)}
                     >
                         + Add Expense
                     </button>
@@ -60,13 +58,8 @@ export default function DashboardPage() {
 
                 <section>
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className="animate-pulse h-32 bg-[var(--color-surface)] rounded-2xl"
-                                ></div>
-                            ))}
+                        <div className="text-[var(--color-muted)]">
+                            Loading...
                         </div>
                     ) : expenses.length === 0 ? (
                         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-12 text-center text-[var(--color-muted)]">
@@ -84,9 +77,7 @@ export default function DashboardPage() {
                     )}
                 </section>
             </div>
-            <div className="md:hidden">
-                <FloatingExpenseButton />
-            </div>
+            {isFormOpen && <ExpenseForm onClose={() => setIsFormOpen(false)} />}
         </main>
     );
 }

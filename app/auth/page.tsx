@@ -51,8 +51,9 @@ export default function AuthPage() {
                 </p>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-4">
+            <form onSubmit={handleAuth} className="space-y-4" method="POST">
                 <input
+                    name="email"
                     type="email"
                     placeholder="Email address"
                     value={email}
@@ -60,6 +61,7 @@ export default function AuthPage() {
                     required
                 />
                 <input
+                    name="password"
                     type="password"
                     placeholder="Password"
                     value={password}
