@@ -18,7 +18,7 @@ export async function createExpense(expenseData: ExpenseFormData) {
         amount: expenseData.amount,
         category_id: expenseData.category_id,
         payment_mode_id: expenseData.payment_mode_id,
-        description: expenseData.description || null,
+        type: expenseData.type,
         notes: expenseData.notes || null,
         expense_date: expenseData.expense_date,
         is_split: false,

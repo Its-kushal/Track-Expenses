@@ -10,17 +10,15 @@ type Expense = {
     title: string;
     amount: number;
     expense_date: string;
-    description?: string;
+    type: string;
     notes?: string;
     categories?: { name: string; type: string };
     payment_modes?: { name: string };
 };
-
 export default function DashboardPage() {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isFormOpen, setIsFormOpen] = useState(false); // 2. Add Modal State
-
+    const [isFormOpen, setIsFormOpen] = useState(false);
     useEffect(() => {
         async function loadExpenses() {
             try {
@@ -34,7 +32,6 @@ export default function DashboardPage() {
         }
         loadExpenses();
     }, []);
-
     return (
         <main className="min-h-screen bg-[var(--color-background)] pb-24 md:pb-0">
             <Navbar onAddClick={() => setIsFormOpen(true)} />
@@ -50,12 +47,10 @@ export default function DashboardPage() {
                     </div>
                     <button
                         className="hidden md:block bg-white text-black px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
-                        onClick={() => setIsFormOpen(true)}
-                    >
+                        onClick={() => setIsFormOpen(true)}>
                         + Add Expense
                     </button>
                 </header>
-
                 <section>
                     {loading ? (
                         <div className="text-[var(--color-muted)]">

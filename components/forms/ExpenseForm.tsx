@@ -25,7 +25,7 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
         amount: 0,
         category_id: "",
         payment_mode_id: "",
-        description: "",
+        type: "need",
         notes: "",
         expense_date: new Date().toISOString().split("T")[0],
     });
@@ -41,6 +41,9 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
 
     async function handleSubmit() {
         const validationError = validateExpense(formData);
+        const localDate = new Date();
+        const [year, month, day] = formData.expense_date.split("-");
+        localDate.setFullYear(Number(year), Number(month) - 1, Number(day));
         if (validationError) {
             alert(validationError);
             return;
@@ -70,12 +73,10 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                     <button
                         onClick={() => (onClose ? onClose() : router.back())}
                         className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                        aria-label="Close"
-                    >
+                        aria-label="Close">
                         ✕
                     </button>
                 </header>
-
                 <div className="p-6 overflow-y-auto space-y-4 flex-1">
                     <input
                         placeholder="Expense Title"
@@ -84,7 +85,6 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                             setFormData({ ...formData, title: e.target.value })
                         }
                     />
-
                     <div className="flex gap-4">
                         <input
                             type="number"
@@ -108,7 +108,6 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                             }
                         />
                     </div>
-
                     <div className="flex gap-4">
                         <select
                             value={formData.category_id}
@@ -117,8 +116,7 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                     ...formData,
                                     category_id: e.target.value,
                                 })
-                            }
-                        >
+                            }>
                             <option value="" disabled>
                                 Category
                             </option>
@@ -128,7 +126,6 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                 </option>
                             ))}
                         </select>
-
                         <select
                             value={formData.payment_mode_id}
                             onChange={(e) =>
@@ -136,8 +133,7 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                     ...formData,
                                     payment_mode_id: e.target.value,
                                 })
-                            }
-                        >
+                            }>
                             <option value="" disabled>
                                 Payment Mode
                             </option>
@@ -147,20 +143,20 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                 </option>
                             ))}
                         </select>
+                        <select
+                            value={formData.type}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    type: e.target.value,
+                                })
+                            }
+                            className="w-full p-3 rounded-xl bg-[#09090b] border border-[var(--color-border)] text-white">
+                            <option value="need">Need</option>
+                            <option value="want">Want</option>
+                            <option value="saving">Saving</option>
+                        </select>
                     </div>
-
-                    <textarea
-                        placeholder="Description (Optional)"
-                        value={formData.description}
-                        onChange={(e) =>
-                            setFormData({
-                                ...formData,
-                                description: e.target.value,
-                            })
-                        }
-                        rows={2}
-                    />
-
                     <textarea
                         placeholder="Additional Notes"
                         value={formData.notes}
@@ -170,13 +166,11 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                         rows={2}
                     />
                 </div>
-
                 <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface)] shrink-0">
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
-                        className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors"
-                    >
+                        className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors">
                         {loading ? "Saving..." : "Save Expense"}
                     </button>
                 </div>

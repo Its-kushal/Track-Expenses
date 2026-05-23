@@ -5,7 +5,7 @@ type UpdateExpenseData = {
     amount: number;
     category_id: string;
     payment_mode_id: string;
-    description?: string;
+    type: string;
     notes?: string;
     expense_date: string;
 };
@@ -30,7 +30,7 @@ export async function updateExpense(id: string, data: UpdateExpenseData) {
             amount: data.amount,
             category_id: data.category_id,
             payment_mode_id: data.payment_mode_id,
-            description: data.description || null,
+            type: data.type,
             notes: data.notes || null,
             expense_date: data.expense_date,
             updated_at: new Date().toISOString(),

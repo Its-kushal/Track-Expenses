@@ -11,6 +11,7 @@ type Expense = {
     title: string;
     amount: number;
     expense_date: string;
+    type: string;
     categories: {
         name: string;
         type: string;

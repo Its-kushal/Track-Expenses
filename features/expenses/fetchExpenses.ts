@@ -11,7 +11,7 @@ export async function fetchExpenses(limit?: number) {
     const { data, error } = await supabase.from("expenses").select(
     `
       *,
-      categories (id, name, type),
+      categories (id, name),
       payment_modes (id, name)
     `,
         ).eq("created_by", user.id).order("expense_date", {ascending: false,}).limit(limit || 100);

@@ -10,7 +10,7 @@ type ExpenseCardProps = {
         title: string;
         amount: number;
         expense_date: string;
-        description?: string;
+        type: string;
         notes?: string;
         category_id?: string;
         payment_mode_id?: string;
@@ -23,33 +23,28 @@ type ExpenseCardProps = {
         };
     };
 };
-
 type Category = {
     id: string;
     name: string;
 };
-
 type PaymentMode = {
     id: string;
     name: string;
 };
-
 export default function ExpenseCard({ expense }: ExpenseCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [editing, setEditing] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
-
     const [formData, setFormData] = useState({
         title: expense.title,
         amount: expense.amount,
         category_id: expense.category_id || "",
         payment_mode_id: expense.payment_mode_id || "",
-        description: expense.description || "",
+        type: expense.type,
         notes: expense.notes || "",
         expense_date: expense.expense_date.split("T")[0],
     });
-
     useEffect(() => {
         async function loadMeta() {
             const data = await fetchExpenseMeta();
@@ -58,7 +53,6 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
         }
         loadMeta();
     }, []);
-
     async function handleUpdate() {
         try {
             await updateExpense(expense.id, formData);
@@ -69,7 +63,6 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
             alert("Failed to update expense");
         }
     }
-
     async function handleDelete() {
         const confirmed = confirm("Delete expense?");
         if (!confirmed) return;
@@ -81,15 +74,13 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
             alert("Failed to delete expense");
         }
     }
-
     return (
         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 shadow-sm transition-all overflow-hidden">
             {!editing ? (
                 <div className="flex flex-col gap-4">
                     <div
                         className="flex justify-between items-start cursor-pointer"
-                        onClick={() => setExpanded(!expanded)}
-                    >
+                        onClick={() => setExpanded(!expanded)}>
                         <div className="flex-1 pr-4">
                             <h3 className="text-lg font-semibold text-white truncate">
                                 {expense.title}
@@ -113,7 +104,6 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                             </p>
                         </div>
                     </div>
-
                     {expanded && (
                         <div className="pt-4 border-t border-[var(--color-border)] space-y-3 text-sm text-[var(--color-muted)]">
                             <div className="flex justify-between">
@@ -122,27 +112,15 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                                     {expense.payment_modes?.name}
                                 </span>
                             </div>
-                            {expense.description && (
-                                <div className="bg-[#0f0f12] p-3 rounded-lg border border-[var(--color-border)]">
-                                    <span className="block text-xs uppercase tracking-wider mb-1">
-                                        Description
-                                    </span>
-                                    <span className="text-white">
-                                        {expense.description}
-                                    </span>
-                                </div>
-                            )}
                             <div className="flex gap-3 mt-4 pt-2">
                                 <button
                                     onClick={() => setEditing(true)}
-                                    className="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-medium hover:bg-white/20"
-                                >
+                                    className="flex-1 bg-white/10 text-white py-2.5 rounded-xl font-medium hover:bg-white/20">
                                     Edit
                                 </button>
                                 <button
                                     onClick={handleDelete}
-                                    className="flex-1 bg-red-500/10 text-red-500 py-2.5 rounded-xl font-medium hover:bg-red-500/20"
-                                >
+                                    className="flex-1 bg-red-500/10 text-red-500 py-2.5 rounded-xl font-medium hover:bg-red-500/20">
                                     Delete
                                 </button>
                             </div>
@@ -159,7 +137,6 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                         }
                         placeholder="Expense Title"
                     />
-
                     <div className="flex gap-4">
                         <input
                             type="number"
@@ -185,7 +162,6 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                             }
                         />
                     </div>
-
                     <div className="flex gap-4">
                         <select
                             className="w-full p-3 rounded-xl bg-white border border-[var(--color-border)] text-black"
@@ -195,8 +171,7 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                                     ...formData,
                                     category_id: e.target.value,
                                 })
-                            }
-                        >
+                            }>
                             <option value="">Category</option>
                             {categories.map((cat) => (
                                 <option key={cat.id} value={cat.id}>
@@ -204,7 +179,6 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                                 </option>
                             ))}
                         </select>
-
                         <select
                             className="w-full p-3 rounded-xl bg-white border border-[var(--color-border)] text-black"
                             value={formData.payment_mode_id}
@@ -213,8 +187,7 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                                     ...formData,
                                     payment_mode_id: e.target.value,
                                 })
-                            }
-                        >
+                            }>
                             <option value="">Payment Mode</option>
                             {paymentModes.map((mode) => (
                                 <option key={mode.id} value={mode.id}>
@@ -223,18 +196,15 @@ export default function ExpenseCard({ expense }: ExpenseCardProps) {
                             ))}
                         </select>
                     </div>
-
                     <div className="flex justify-end gap-3 pt-2">
                         <button
                             onClick={() => setEditing(false)}
-                            className="px-4 py-2 text-sm text-[var(--color-muted)] font-medium"
-                        >
+                            className="px-4 py-2 text-sm text-[var(--color-muted)] font-medium">
                             Cancel
                         </button>
                         <button
                             onClick={handleUpdate}
-                            className="px-6 py-2 bg-black text-white text-sm font-semibold rounded-xl"
-                        >
+                            className="px-6 py-2 bg-black text-white text-sm font-semibold rounded-xl">
                             Save
                         </button>
                     </div>
