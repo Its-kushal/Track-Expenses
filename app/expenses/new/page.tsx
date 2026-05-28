@@ -1,4 +1,4 @@
-import ExpenseForm from "@/components/forms/ExpenseForm";
+import ExpenseForm from "@/components/forms/PersonalExpenseForm";
 import { createClient } from "@/lib/supabase/server";
 import { fetchExpenseMeta } from "@/features/expenses/fetchExpenseMeta";
 import { redirect } from "next/navigation";

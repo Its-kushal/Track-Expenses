@@ -10,9 +10,9 @@ values
 ('Fuel', 'fuel', '#7dbee5'),
 ('Education', 'book', '#ffe5a0'),
 ('Emergency Fund', 'shield', '#a5fff4'),
-('Generosity', NULL, '#fbc170'),
-('Hangout', NULL, '#e2b3fb'),
-('Gift', NULL, '#52899a'),
+('Generosity', 'hand-heart', '#fbc170'),
+('Hangout', 'coffee', '#e2b3fb'),
+('Gift', 'gift', '#52899a'),
 ('Investment', 'chart-line', '#b5edb7');
 
 insert into payment_modes (name)

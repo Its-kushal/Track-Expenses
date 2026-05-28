@@ -2,7 +2,9 @@
 import { useState, useTransition } from "react";
 import { deleteExpense } from "@/features/expenses/deleteExpense";
 import { updateExpense } from "@/features/expenses/updateExpense";
-import { Category, PaymentMode } from "@/types/modals";
+
+type Category = { id: string; name: string };
+type PaymentMode = { id: string; name: string };
 
 type ExpenseCardProps = {
     expense: {
@@ -14,17 +16,26 @@ type ExpenseCardProps = {
         notes?: string;
         category_id?: string;
         payment_mode_id?: string;
+        is_split?: boolean;
         categories?: { name: string; type?: string };
         payment_modes?: { name: string };
+        expense_participants?: {
+            user_id: string | null;
+            shadow_id: string | null;
+            paid_amount: number;
+            owed_amount: number;
+        }[];
     };
     categories: Category[];
     paymentModes: PaymentMode[];
+    currentUserId?: string; // New Prop Required for Split Math
 };
 
 export default function ExpenseCard({
     expense,
     categories,
     paymentModes,
+    currentUserId,
 }: ExpenseCardProps) {
     const [expanded, setExpanded] = useState(false);
     const [editing, setEditing] = useState(false);
@@ -66,6 +77,34 @@ export default function ExpenseCard({
         });
     }
 
+    let splitText = "";
+    let splitAmount = "";
+    let splitColor = "text-[var(--color-muted)]";
+
+    if (expense.is_split && currentUserId && expense.expense_participants) {
+        const myParticipant = expense.expense_participants.find(
+            (p) => p.user_id === currentUserId,
+        );
+
+        if (!myParticipant) {
+            splitText = "Not involved";
+        } else {
+            const netImpact =
+                myParticipant.paid_amount - myParticipant.owed_amount;
+            if (netImpact > 0) {
+                splitText = "You lent";
+                splitAmount = `₹${netImpact.toFixed(2)}`;
+                splitColor = "text-green-400";
+            } else if (netImpact < 0) {
+                splitText = "You borrowed";
+                splitAmount = `₹${Math.abs(netImpact).toFixed(2)}`;
+                splitColor = "text-red-400";
+            } else {
+                splitText = "Settled";
+            }
+        }
+    }
+
     return (
         <div
             className={`bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-5 shadow-sm transition-all overflow-hidden ${isPending ? "opacity-50 pointer-events-none" : ""}`}
@@ -86,9 +125,25 @@ export default function ExpenseCard({
                         </div>
 
                         <div className="text-right shrink-0">
-                            <span className="text-xl font-bold text-white tracking-tight">
-                                ₹{expense.amount.toLocaleString()}
-                            </span>
+                            {/* If it's a split expense, show impact. Otherwise, show total. */}
+                            {expense.is_split ? (
+                                <>
+                                    <span
+                                        className={`text-sm font-bold block ${splitColor}`}
+                                    >
+                                        {splitText} {splitAmount}
+                                    </span>
+                                    <p className="text-xs text-[var(--color-muted)] mt-1 line-through">
+                                        Total: ₹
+                                        {expense.amount.toLocaleString()}
+                                    </p>
+                                </>
+                            ) : (
+                                <span className="text-xl font-bold text-white tracking-tight">
+                                    ₹{expense.amount.toLocaleString()}
+                                </span>
+                            )}
+
                             <p className="text-xs text-[var(--color-muted)] mt-1">
                                 {new Date(
                                     expense.expense_date,
