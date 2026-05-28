@@ -1,10 +1,9 @@
-import { supabase } from "@/lib/supabase/client";
+import { SupabaseClient } from "@supabase/supabase-js";
 
-export async function fetchExpenseMeta() {
+export async function fetchExpenseMeta(supabase: SupabaseClient) {
     const [categoriesResponse, paymentModesResponse] = await Promise.all([
-        supabase.from("categories").select("*").order("name"),
-
-        supabase.from("payment_modes").select("*").order("name"),
+        supabase.from("categories").select("id, name").order("name"),
+        supabase.from("payment_modes").select("id, name").order("name"),
     ]);
 
     return {

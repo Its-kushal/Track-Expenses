@@ -1,25 +1,27 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
     ExpenseFormData,
     validateExpense,
 } from "@/features/expenses/expense.schema";
-import { fetchExpenseMeta } from "@/features/expenses/fetchExpenseMeta";
 import { createExpense } from "@/features/expenses/createExpense";
 
-type Category = { id: string; name: string; type: string };
+type Category = { id: string; name: string };
 type PaymentMode = { id: string; name: string };
 
 type ExpenseFormProps = {
     onClose?: () => void;
+    categories: Category[];
+    paymentModes: PaymentMode[];
 };
-
-export default function ExpenseForm({ onClose }: ExpenseFormProps) {
+export default function ExpenseForm({
+    onClose,
+    categories,
+    paymentModes,
+}: ExpenseFormProps) {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [paymentModes, setPaymentModes] = useState<PaymentMode[]>([]);
+    const [isPending, startTransition] = useTransition();
     const [formData, setFormData] = useState<ExpenseFormData>({
         title: "",
         amount: 0,
@@ -30,39 +32,27 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
         expense_date: new Date().toISOString().split("T")[0],
     });
 
-    useEffect(() => {
-        async function loadMeta() {
-            const data = await fetchExpenseMeta();
-            setCategories(data.categories);
-            setPaymentModes(data.paymentModes);
-        }
-        loadMeta();
-    }, []);
-
     async function handleSubmit() {
         const validationError = validateExpense(formData);
-        const localDate = new Date();
-        const [year, month, day] = formData.expense_date.split("-");
-        localDate.setFullYear(Number(year), Number(month) - 1, Number(day));
+
         if (validationError) {
             alert(validationError);
             return;
         }
-        try {
-            setLoading(true);
-            await createExpense(formData);
+        startTransition(async () => {
+            const result = await createExpense(formData);
+
+            if (result?.error) {
+                alert(result.error);
+                return;
+            }
+
             if (onClose) {
                 onClose();
-                window.location.reload();
             } else {
                 router.push("/dashboard");
             }
-        } catch (error) {
-            console.error(error);
-            alert("Failed to create expense");
-        } finally {
-            setLoading(false);
-        }
+        });
     }
 
     return (
@@ -73,7 +63,8 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                     <button
                         onClick={() => (onClose ? onClose() : router.back())}
                         className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                        aria-label="Close">
+                        aria-label="Close"
+                    >
                         ✕
                     </button>
                 </header>
@@ -116,7 +107,8 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                     ...formData,
                                     category_id: e.target.value,
                                 })
-                            }>
+                            }
+                        >
                             <option value="" disabled>
                                 Category
                             </option>
@@ -133,7 +125,8 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                     ...formData,
                                     payment_mode_id: e.target.value,
                                 })
-                            }>
+                            }
+                        >
                             <option value="" disabled>
                                 Payment Mode
                             </option>
@@ -151,7 +144,8 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                                     type: e.target.value,
                                 })
                             }
-                            className="w-full p-3 rounded-xl bg-[#09090b] border border-[var(--color-border)] text-white">
+                            className="w-full p-3 rounded-xl bg-[#09090b] border border-[var(--color-border)] text-white"
+                        >
                             <option value="need">Need</option>
                             <option value="want">Want</option>
                             <option value="saving">Saving</option>
@@ -169,9 +163,10 @@ export default function ExpenseForm({ onClose }: ExpenseFormProps) {
                 <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface)] shrink-0">
                     <button
                         onClick={handleSubmit}
-                        disabled={loading}
-                        className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors">
-                        {loading ? "Saving..." : "Save Expense"}
+                        disabled={isPending}
+                        className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                    >
+                        {isPending ? "Saving..." : "Save Expense"}
                     </button>
                 </div>
             </div>

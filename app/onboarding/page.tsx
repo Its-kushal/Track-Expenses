@@ -1,130 +1,62 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-
-import {
-    validateProfile,
-    type ProfileFormData,
-} from "@/features/profile/profile.schema";
-
 import { updateProfile } from "@/features/profile/updateProfile";
 
 export default function OnboardingPage() {
-    const router = useRouter();
-
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const [formData, setFormData] = useState<ProfileFormData>({
-        full_name: "",
-        username: "",
-        currency: "INR",
-        timezone: "Asia/Kolkata",
-        phone: "",
-    });
+    async function handleFormAction(formData: FormData) {
+        setLoading(true);
+        setError(null);
 
-    async function handleSubmit() {
-        const validationError = validateProfile(formData);
+        const result = await updateProfile(formData);
 
-        if (validationError) {
-            alert(validationError);
-            return;
-        }
-
-        try {
-            setLoading(true);
-
-            await updateProfile(formData);
-
-            router.push("/dashboard");
-        } catch (error) {
-            console.error(error);
-
-            alert("Failed to update profile");
-        } finally {
+        if (result?.error) {
+            setError(result.error);
             setLoading(false);
         }
     }
 
     return (
-        <main style={{ padding: 24 }}>
-            <h1>Complete Your Profile</h1>
+        <main className="flex flex-col justify-center min-h-[100dvh] p-6 max-w-md mx-auto">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold">Complete Your Profile</h1>
+                <p className="text-[var(--color-muted)] mt-2">
+                    Set up your preferences to continue.
+                </p>
+            </div>
 
-            <br />
+            <form action={handleFormAction} className="space-y-4">
+                <input name="full_name" placeholder="Full Name" required />
+                <input name="username" placeholder="Username" required />
+                <input
+                    name="currency"
+                    defaultValue="INR"
+                    placeholder="Currency (e.g., INR, USD)"
+                    required
+                />
+                <input
+                    name="timezone"
+                    defaultValue="Asia/Kolkata"
+                    placeholder="Timezone"
+                    required
+                />
+                <input name="phone" placeholder="Phone (Optional)" type="tel" />
 
-            <input
-                placeholder="Full Name"
-                value={formData.full_name}
-                onChange={(e) =>
-                    setFormData({
-                        ...formData,
-                        full_name: e.target.value,
-                    })
-                }
-            />
+                {error && (
+                    <p className="text-sm font-medium text-red-400">{error}</p>
+                )}
 
-            <br />
-            <br />
-
-            <input
-                placeholder="Username"
-                value={formData.username}
-                onChange={(e) =>
-                    setFormData({
-                        ...formData,
-                        username: e.target.value,
-                    })
-                }
-            />
-
-            <br />
-            <br />
-
-            <input
-                placeholder="Currency"
-                value={formData.currency}
-                onChange={(e) =>
-                    setFormData({
-                        ...formData,
-                        currency: e.target.value,
-                    })
-                }
-            />
-
-            <br />
-            <br />
-
-            <input
-                placeholder="Timezone"
-                value={formData.timezone}
-                onChange={(e) =>
-                    setFormData({
-                        ...formData,
-                        timezone: e.target.value,
-                    })
-                }
-            />
-
-            <br />
-            <br />
-
-            <input
-                placeholder="Phone"
-                value={formData.phone}
-                onChange={(e) =>
-                    setFormData({
-                        ...formData,
-                        phone: e.target.value,
-                    })
-                }
-            />
-
-            <br />
-            <br />
-
-            <button onClick={handleSubmit} disabled={loading}>
-                {loading ? "Saving..." : "Complete Profile"}
-            </button>
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-white text-black font-semibold rounded-2xl py-4 mt-4"
+                >
+                    {loading ? "Saving..." : "Complete Profile"}
+                </button>
+            </form>
         </main>
     );
 }

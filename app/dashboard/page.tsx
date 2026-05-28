@@ -1,40 +1,40 @@
-"use client";
-import { useEffect, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import ExpenseCard from "@/components/ui/ExpenseCard";
-import ExpenseForm from "@/components/forms/ExpenseForm";
-import { fetchExpenses } from "@/features/expenses/fetchExpenses";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { fetchExpenseMeta } from "@/features/expenses/fetchExpenseMeta";
 
-type Expense = {
-    id: string;
-    title: string;
-    amount: number;
-    expense_date: string;
-    type: string;
-    notes?: string;
-    categories?: { name: string; type: string };
-    payment_modes?: { name: string };
-};
-export default function DashboardPage() {
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    useEffect(() => {
-        async function loadExpenses() {
-            try {
-                const data = await fetchExpenses(7);
-                setExpenses(data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadExpenses();
-    }, []);
+export default async function DashboardPage() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) redirect("/auth");
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, username")
+        .eq("id", user.id)
+        .single();
+
+    if (!profile?.full_name || !profile?.username) redirect("/onboarding");
+    const [meta, expensesResponse] = await Promise.all([
+        fetchExpenseMeta(supabase),
+        supabase
+            .from("expenses")
+            .select(`
+                id, title, amount, expense_date, type, notes, category_id, payment_mode_id,
+                categories (id, name),
+                payment_modes (id, name)
+            `)
+            .eq("created_by", user.id)
+            .order("expense_date", { ascending: false })
+            .limit(7)
+    ]);
+    const expenses = expensesResponse.data;
+    const { categories, paymentModes } = meta;
+
     return (
         <main className="min-h-screen bg-[var(--color-background)] pb-24 md:pb-0">
-            <Navbar onAddClick={() => setIsFormOpen(true)} />
+            <Navbar />
             <div className="max-w-7xl mx-auto p-6 md:p-10 space-y-8">
                 <header className="flex justify-between items-end">
                     <div>
@@ -45,18 +45,15 @@ export default function DashboardPage() {
                             Your recent financial activity
                         </p>
                     </div>
-                    <button
+                    <Link
+                        href="/expenses/new"
                         className="hidden md:block bg-white text-black px-6 py-3 rounded-xl font-semibold hover:bg-gray-200 transition"
-                        onClick={() => setIsFormOpen(true)}>
+                    >
                         + Add Expense
-                    </button>
+                    </Link>
                 </header>
                 <section>
-                    {loading ? (
-                        <div className="text-[var(--color-muted)]">
-                            Loading...
-                        </div>
-                    ) : expenses.length === 0 ? (
+                    {!expenses || expenses.length === 0 ? (
                         <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-2xl p-12 text-center text-[var(--color-muted)]">
                             No recent expenses found.
                         </div>
@@ -65,14 +62,16 @@ export default function DashboardPage() {
                             {expenses.map((expense) => (
                                 <ExpenseCard
                                     key={expense.id}
-                                    expense={expense}
+                                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                    expense={expense as any}
+                                    categories={categories}
+                                    paymentModes={paymentModes}
                                 />
                             ))}
                         </div>
                     )}
                 </section>
             </div>
-            {isFormOpen && <ExpenseForm onClose={() => setIsFormOpen(false)} />}
         </main>
     );
 }

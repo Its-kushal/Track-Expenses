@@ -1,15 +1,29 @@
-import { supabase } from "@/lib/supabase/client";
+"use server";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { validateProfile } from "./profile.schema";
 
-import { ProfileFormData } from "./profile.schema";
+export async function updateProfile(formData: FormData) {
+    const supabase = await createClient();
 
-export async function updateProfile(profileData: ProfileFormData) {
     const {
         data: { user },
-        error: authError,
     } = await supabase.auth.getUser();
+    if (!user) {
+        return { error: "User not authenticated. Please log in again." };
+    }
 
-    if (authError || !user) {
-        throw new Error("User not authenticated");
+    const profileData = {
+        full_name: formData.get("full_name") as string,
+        username: formData.get("username") as string,
+        currency: formData.get("currency") as string,
+        timezone: formData.get("timezone") as string,
+        phone: (formData.get("phone") as string) || "",
+    };
+
+    const validationError = validateProfile(profileData);
+    if (validationError) {
+        return { error: validationError };
     }
 
     const { error } = await supabase
@@ -25,9 +39,8 @@ export async function updateProfile(profileData: ProfileFormData) {
         .eq("id", user.id);
 
     if (error) {
-        console.error("PROFILE UPDATE ERROR:", error);
-        throw error;
+        return { error: error.message };
     }
 
-    return true;
+    redirect("/dashboard");
 }

@@ -1,23 +1,26 @@
-import { supabase } from "@/lib/supabase/client";
+"use server";
+
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 export async function deleteExpense(id: string) {
-    const {data: { user },} = await supabase.auth.getUser();
-    if (!user) throw new Error("Unauthorized");
-    const { data: expense, error: fetchError } = await supabase
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
+    const { error } = await supabase
         .from("expenses")
-        .select("*")
+        .delete()
         .eq("id", id)
-        .single();
+        .eq("created_by", user.id);
 
-    if (fetchError || !expense) {throw new Error("Expense not found");}
-    const { error } = await supabase.from("expenses").delete().eq("id", id);
+    if (error) {
+        return { error: error.message };
+    }
 
-    if (error) throw error;
-    await supabase.from("activities").insert({
-        user_id: user.id,
-        expense_id: id,
-        action: "deleted",
-        old_data: expense,
-    });
-    return true;
+    revalidatePath("/dashboard");
+    revalidatePath("/expenses");
+    return { success: true };
 }

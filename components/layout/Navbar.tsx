@@ -1,7 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
 import Link from "next/link";
+import { logout } from "@/features/auth/actions";
+import { useTransition } from "react";
 
 type NavbarProps = {
     onAddClick?: () => void;
@@ -9,10 +10,7 @@ type NavbarProps = {
 
 export default function Navbar({ onAddClick }: NavbarProps) {
     const router = useRouter();
-    async function handleLogout() {
-        await supabase.auth.signOut();
-        router.push("/auth");
-    }
+    const [isPending, startTransition] = useTransition();
 
     return (
         <>
@@ -21,26 +19,31 @@ export default function Navbar({ onAddClick }: NavbarProps) {
                     <div className="flex items-center gap-8">
                         <Link
                             href="/dashboard"
-                            className="text-xl font-extrabold text-[var(--color-primary)] tracking-tight">
+                            className="text-xl font-extrabold text-[var(--color-primary)] tracking-tight"
+                        >
                             BFM.
                         </Link>
                         <div className="hidden md:flex gap-6 text-sm font-medium text-[var(--color-muted)]">
                             <Link
                                 href="/dashboard"
-                                className="hover:text-[var(--color-primary)] transition">
+                                className="hover:text-[var(--color-primary)] transition"
+                            >
                                 Dashboard
                             </Link>
                             <Link
                                 href="/expenses"
-                                className="hover:text-[var(--color-primary)] transition">
+                                className="hover:text-[var(--color-primary)] transition"
+                            >
                                 All Expenses
                             </Link>
                         </div>
                     </div>
                     <button
-                        onClick={handleLogout}
-                        className="text-sm font-medium text-red-500 hover:text-red-600 transition">
-                        Logout
+                        onClick={() => startTransition(() => logout())}
+                        disabled={isPending}
+                        className="text-sm font-medium text-red-500 hover:text-red-600 transition disabled:opacity-50"
+                    >
+                        {isPending ? "Logging out..." : "Logout"}
                     </button>
                 </div>
             </nav>
@@ -55,7 +58,8 @@ export default function Navbar({ onAddClick }: NavbarProps) {
                             className="w-5 h-5 mb-1"
                             fill="none"
                             stroke="currentColor"
-                            viewBox="0 0 24 24">
+                            viewBox="0 0 24 24"
+                        >
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -69,16 +73,34 @@ export default function Navbar({ onAddClick }: NavbarProps) {
                         onClick={() =>
                             onAddClick
                                 ? onAddClick()
-                                : router.push("/expenses/new")}
-                        className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center bg-white text-black w-14 h-14 rounded-full shadow-[0_8px_30px_rgba(255,255,255,0.3)] active:scale-95 transition-transform border-4 border-[var(--color-background)]">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4"/>
+                                : router.push("/expenses/new")
+                        }
+                        className="absolute left-1/2 -translate-x-1/2 -top-6 flex items-center justify-center bg-white text-black w-14 h-14 rounded-full shadow-[0_8px_30px_rgba(255,255,255,0.3)] active:scale-95 transition-transform border-4 border-[var(--color-background)]"
+                    >
+                        <svg
+                            className="w-6 h-6"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 4v16m8-8H4"
+                            />
                         </svg>
                     </button>
                     <Link
                         href="/expenses"
-                        className="flex flex-col items-center justify-center w-12 text-[var(--color-muted)] hover:text-white transition-colors">
-                        <svg className="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        className="flex flex-col items-center justify-center w-12 text-[var(--color-muted)] hover:text-white transition-colors"
+                    >
+                        <svg
+                            className="w-5 h-5 mb-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
                             <path
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
@@ -86,7 +108,9 @@ export default function Navbar({ onAddClick }: NavbarProps) {
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                             />
                         </svg>
-                        <span className="text-[10px] font-medium">Expenses</span>
+                        <span className="text-[10px] font-medium">
+                            Expenses
+                        </span>
                     </Link>
                 </div>
             </div>

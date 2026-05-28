@@ -1,66 +1,58 @@
-"use client";
-
-import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/server";
 import { fetchExpenses } from "@/features/expenses/fetchExpenses";
-import FloatingExpenseButton from "@/components/ui/FloatingExpenseButton";
 import ExpenseCard from "@/components/ui/ExpenseCard";
 import Navbar from "@/components/layout/Navbar";
+import FloatingExpenseButton from "@/components/ui/FloatingExpenseButton";
+import { redirect } from "next/navigation";
 
-type Expense = {
-    id: string;
-    title: string;
-    amount: number;
-    expense_date: string;
-    type: string;
-    categories: {
-        name: string;
-        type: string;
-    };
-    payment_modes: {
-        name: string;
-    };
-};
+// type Expense = {
+//     id: string;
+//     title: string;
+//     amount: number;
+//     expense_date: string;
+//     type: string;
+//     categories: {
+//         name: string;
+//         type: string;
+//     };
+//     payment_modes: {
+//         name: string;
+//     };
+// };
 
-export default function ExpensesPage() {
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [loading, setLoading] = useState(true);
-    useEffect(() => {
-        async function loadExpenses() {
-            try {
-                const data = await fetchExpenses();
-                setExpenses(data);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        loadExpenses();
-    }, []);
-    if (loading) {
-        return <div>Loading expenses...</div>;
-    }
+export default async function ExpensesPage() {
+    const supabase = await createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/auth");
+
+    // We now pass the server client into our refactored utility
+    const expenses = await fetchExpenses(supabase);
+
     return (
-        <main style={{ padding: 24 }}>
+        <main className="p-6">
             <Navbar />
-            <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                }}>
-                <h1>Expenses</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-3xl font-bold">All Expenses</h1>
             </div>
-            <br />
+
             {expenses.length === 0 ? (
-                <div>No expenses found.</div>
+                <div className="text-[var(--color-muted)]">
+                    No expenses found.
+                </div>
             ) : (
-                <div>
+                <div className="space-y-4">
                     {expenses.map((expense) => (
-                        <ExpenseCard key={expense.id} expense={expense} />
+                        <ExpenseCard
+                            key={expense.id}
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            expense={expense as any}
+                        />
                     ))}
                 </div>
             )}
+
             <FloatingExpenseButton />
         </main>
     );

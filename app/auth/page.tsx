@@ -1,45 +1,28 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { login, signup } from "../../features/auth/actions";
 
 export default function AuthPage() {
-    const router = useRouter();
     const [isSignup, setIsSignup] = useState(false);
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
+    const [message, setMessage] = useState<{
+        type: "error" | "success";
+        text: string;
+    } | null>(null);
+    async function handleAuth(formData: FormData) {
+        setLoading(true);
+        setMessage(null);
 
-    async function handleAuth(e: React.FormEvent) {
-        e.preventDefault();
-        setErrorMsg("");
-        try {
-            setLoading(true);
-            if (isSignup) {
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                });
-                if (error) throw error;
-                setIsSignup(false);
-                setErrorMsg("Success! Please log in.");
-                return;
-            }
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-            if (error) throw error;
-            router.push("/dashboard");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error: any) {
-            setErrorMsg(error.message || "Authentication failed");
-        } finally {
-            setLoading(false);
+        const action = isSignup ? signup : login;
+        const result = await action(formData);
+
+        if (result?.error) {
+            setMessage({ type: "error", text: result.error });
+        } else if (result?.success) {
+            setMessage({ type: "success", text: result.success });
         }
+        setLoading(false);
     }
-
     return (
         <main className="flex flex-col justify-center min-h-[100dvh] p-6 max-w-md mx-auto">
             <div className="mb-8">
@@ -51,27 +34,25 @@ export default function AuthPage() {
                 </p>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-4" method="POST">
+            <form action={handleAuth} className="space-y-4">
                 <input
                     name="email"
                     type="email"
                     placeholder="Email address"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     required
                 />
                 <input
                     name="password"
                     type="password"
                     placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     required
                 />
 
-                {errorMsg && (
-                    <p className="text-red-400 text-sm font-medium">
-                        {errorMsg}
+                {message && (
+                    <p
+                        className={`text-sm font-medium ${message.type === "error" ? "text-red-400" : "text-green-400"}`}
+                    >
+                        {message.text}
                     </p>
                 )}
 
@@ -91,8 +72,9 @@ export default function AuthPage() {
             <button
                 onClick={() => {
                     setIsSignup(!isSignup);
-                    setErrorMsg("");
+                    setMessage(null);
                 }}
+                type="button"
                 className="mt-8 text-[var(--color-muted)] text-sm font-medium hover:text-white transition-colors"
             >
                 {isSignup
