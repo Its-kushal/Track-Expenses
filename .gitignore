@@ -42,3 +42,10 @@ next-env.d.ts
 
 # personal
 notes/
+
+# icons
+public/FullLogo_NoBuffer.png
+public/FullLogo_Transparent_NoBuffer.png
+public/FullLogo_Transparent.png
+public/FullLogo_NoBuffer.png
+public/FullLogo.png
