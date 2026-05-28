@@ -15,12 +15,12 @@ export default function AuthPage() {
 
         const action = isSignup ? signup : login;
         const result = await action(formData);
-
-        if (result?.error) {
+        if (result && "error" in result && result.error) {
             setMessage({ type: "error", text: result.error });
-        } else if (result?.success) {
+        } else if (result && "success" in result && result.success) {
             setMessage({ type: "success", text: result.success });
         }
+
         setLoading(false);
     }
     return (
