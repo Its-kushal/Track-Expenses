@@ -6,22 +6,20 @@ import {
     validateExpense,
 } from "@/features/expenses/expense.schema";
 import { createExpense } from "@/features/expenses/createExpense";
-
-type Category = { id: string; name: string };
-type PaymentMode = { id: string; name: string };
+import { Category, PaymentMode } from "@/types/modals";
 
 type ExpenseFormProps = {
-    onClose?: () => void;
     categories: Category[];
     paymentModes: PaymentMode[];
 };
+
 export default function ExpenseForm({
-    onClose,
     categories,
     paymentModes,
 }: ExpenseFormProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
+
     const [formData, setFormData] = useState<ExpenseFormData>({
         title: "",
         amount: 0,
@@ -39,6 +37,7 @@ export default function ExpenseForm({
             alert(validationError);
             return;
         }
+
         startTransition(async () => {
             const result = await createExpense(formData);
 
@@ -47,27 +46,24 @@ export default function ExpenseForm({
                 return;
             }
 
-            if (onClose) {
-                onClose();
-            } else {
-                router.push("/dashboard");
-            }
+            router.push("/dashboard");
         });
     }
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm md:p-6">
-            <div className="bg-[var(--color-surface)] w-full md:w-full md:max-w-md h-[90vh] md:h-auto rounded-t-3xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom md:zoom-in-95 duration-200">
+        <main className="min-h-[100dvh] bg-[var(--color-background)] flex flex-col pb-safe">
+            <div className="flex-1 flex flex-col w-full max-w-md mx-auto bg-[var(--color-surface)] sm:mt-10 sm:mb-10 sm:border sm:border-[var(--color-border)] sm:rounded-3xl sm:shadow-2xl overflow-hidden">
                 <header className="flex justify-between items-center p-6 border-b border-[var(--color-border)] shrink-0">
                     <h2 className="text-xl font-bold">Add Expense</h2>
                     <button
-                        onClick={() => (onClose ? onClose() : router.back())}
+                        onClick={() => router.back()}
                         className="w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                        aria-label="Close"
+                        aria-label="Go Back"
                     >
                         ✕
                     </button>
                 </header>
+
                 <div className="p-6 overflow-y-auto space-y-4 flex-1">
                     <input
                         placeholder="Expense Title"
@@ -160,16 +156,17 @@ export default function ExpenseForm({
                         rows={2}
                     />
                 </div>
+
                 <div className="p-6 border-t border-[var(--color-border)] bg-[var(--color-surface)] shrink-0">
                     <button
                         onClick={handleSubmit}
                         disabled={isPending}
-                        className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                        className="w-full py-4 bg-white text-black rounded-xl font-bold hover:bg-gray-200 transition-colors disabled:opacity-50"
                     >
                         {isPending ? "Saving..." : "Save Expense"}
                     </button>
                 </div>
             </div>
-        </div>
+        </main>
     );
 }

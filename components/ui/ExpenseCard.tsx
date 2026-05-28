@@ -2,9 +2,7 @@
 import { useState, useTransition } from "react";
 import { deleteExpense } from "@/features/expenses/deleteExpense";
 import { updateExpense } from "@/features/expenses/updateExpense";
-
-type Category = { id: string; name: string };
-type PaymentMode = { id: string; name: string };
+import { Category, PaymentMode } from "@/types/modals";
 
 type ExpenseCardProps = {
     expense: {
