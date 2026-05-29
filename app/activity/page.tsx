@@ -11,7 +11,6 @@ export default async function ActivityPage() {
 
     if (!user) redirect("/auth");
 
-    // Fetch settlements where the user is either the payer or the payee
     const { data: rawSettlements, error } = await supabase
         .from("settlements")
         .select(
@@ -33,9 +32,8 @@ export default async function ActivityPage() {
 
     if (error) console.error("Error fetching activity:", error);
 
-    const settlements = rawSettlements || [];
-
-    // Separate pending actionable items from historical feed
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const settlements = (rawSettlements as any[]) || [];
     const pendingApprovals = settlements.filter(
         (s) => s.status === "pending" && s.payee_id === user.id,
     );
