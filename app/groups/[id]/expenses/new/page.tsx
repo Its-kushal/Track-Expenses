@@ -31,7 +31,8 @@ export default async function NewGroupExpensePage({ params }: PageProps) {
             .eq("group_id", groupId),
     ]);
 
-    const rawMembers = membersResponse.data;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rawMembers = (membersResponse.data as any[]) || [];
     if (!rawMembers || !rawMembers.some((m) => m.user_id === user.id)) {
         redirect("/dashboard");
     }
@@ -41,7 +42,9 @@ export default async function NewGroupExpensePage({ params }: PageProps) {
         return {
             id: isShadow ? m.shadow_id! : m.user_id!,
             name: isShadow
+                // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
                 ? m.shadow_profiles?.temp_name!
+                // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
                 : m.profiles?.full_name!,
             isShadow,
         };
