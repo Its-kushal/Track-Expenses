@@ -7,28 +7,36 @@ import { fetchExpenseMeta } from "@/features/expenses/fetchExpenseMeta";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) redirect("/auth");
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, username")
-        .eq("id", user.id)
-        .single();
 
-    if (!profile?.full_name || !profile?.username) redirect("/onboarding");
-    const [meta, expensesResponse] = await Promise.all([
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) redirect("/auth");
+
+    const [profileRes, meta, expensesResponse] = await Promise.all([
+        supabase
+            .from("profiles")
+            .select("full_name, username")
+            .eq("id", user.id)
+            .single(),
         fetchExpenseMeta(supabase),
         supabase
             .from("expenses")
-            .select(`
-                id, title, amount, expense_date, type, notes, category_id, payment_mode_id,
-                categories (id, name),
-                payment_modes (id, name)
-            `)
+            .select(
+                `
+            id, title, amount, expense_date, type, notes, category_id, payment_mode_id,
+            categories (id, name),
+            payment_modes (id, name)
+        `,
+            )
             .eq("created_by", user.id)
             .order("expense_date", { ascending: false })
-            .limit(7)
+            .limit(7),
     ]);
+    if (!profileRes.data?.full_name || !profileRes.data?.username) {
+        redirect("/onboarding");
+    }
+
     const expenses = expensesResponse.data;
     const { categories, paymentModes } = meta;
 
