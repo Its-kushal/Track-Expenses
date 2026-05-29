@@ -65,17 +65,19 @@ export default async function GroupPage({ params }: PageProps) {
     const expenses = expensesRes.data || [];
     const { categories, paymentModes } = metaRes;
 
-    // Helper to map a member's ID to their name and balance
-    const mappedMembers = members.map((m) => {
+    const mappedMembers = members.map((rawMember) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const m = rawMember as any;
+
         const isShadow = m.user_id === null;
         const id = isShadow ? m.shadow_id! : m.user_id!;
         const name = isShadow
             ? m.shadow_profiles?.temp_name
             : m.profiles?.full_name;
 
-        // Find their balance from the trigger-updated table
         const balanceRow = balances.find(
-            (b) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (b: any) =>
                 (isShadow && b.shadow_id === id) ||
                 (!isShadow && b.user_id === id),
         );
