@@ -15,10 +15,12 @@ export async function addMemberToGroup(
     if (!user) return { error: "Unauthorized" };
 
     // 1. Check if the user is registered using the Secure RPC bypass
-    // This calls the Postgres function, bypassing the RLS read restriction safely.
-    const { data: registeredUser } = await supabase
+    const { data: rawData } = await supabase
         .rpc("get_profile_by_email", { lookup_email: email })
         .maybeSingle();
+
+    // Explicitly cast the response type because types/database.ts is outdated
+    const registeredUser = rawData as { id: string; full_name: string } | null;
 
     if (registeredUser) {
         // User exists! Add them to the group immediately.
@@ -41,7 +43,6 @@ export async function addMemberToGroup(
 
     // 2. User is NOT registered. Do we have a temporary name to create a Shadow Profile?
     if (!tempName) {
-        // Stop and ask frontend for a name
         return {
             requiresName: true,
             message:
