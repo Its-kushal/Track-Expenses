@@ -14,12 +14,11 @@ export async function addMemberToGroup(
     } = await supabase.auth.getUser();
     if (!user) return { error: "Unauthorized" };
 
-    // 1. Check if the user is already registered in the app
+    // 1. Check if the user is registered using the Secure RPC bypass
+    // This calls the Postgres function, bypassing the RLS read restriction safely.
     const { data: registeredUser } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .eq("email", email.toLowerCase())
-        .single();
+        .rpc("get_profile_by_email", { lookup_email: email })
+        .maybeSingle();
 
     if (registeredUser) {
         // User exists! Add them to the group immediately.
@@ -32,6 +31,7 @@ export async function addMemberToGroup(
             return {
                 error: "User is already in this group or an error occurred.",
             };
+
         revalidatePath(`/groups/${groupId}`);
         return {
             success: true,
@@ -41,7 +41,7 @@ export async function addMemberToGroup(
 
     // 2. User is NOT registered. Do we have a temporary name to create a Shadow Profile?
     if (!tempName) {
-        // We tell the frontend: "Stop. I need a name to create a shadow profile."
+        // Stop and ask frontend for a name
         return {
             requiresName: true,
             message:
@@ -50,13 +50,12 @@ export async function addMemberToGroup(
     }
 
     // 3. Create the Shadow Profile
-    // We check if a shadow profile for this email already exists first to prevent duplicates
     let shadowId;
     const { data: existingShadow } = await supabase
         .from("shadow_profiles")
         .select("id")
         .eq("email", email.toLowerCase())
-        .single();
+        .maybeSingle();
 
     if (existingShadow) {
         shadowId = existingShadow.id;

@@ -42,6 +42,7 @@ next-env.d.ts
 
 # personal
 notes/
+bulk_update.ts
 
 # icons
 public/FullLogo_NoBuffer.png

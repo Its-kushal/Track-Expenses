@@ -108,7 +108,6 @@ export default function AddMemberModal({
                                 value={email}
                                 onChange={(e) => {
                                     setEmail(e.target.value);
-                                    // Reset shadow flow if they change the email
                                     if (requiresName) setRequiresName(false);
                                 }}
                                 disabled={requiresName || isPending}
